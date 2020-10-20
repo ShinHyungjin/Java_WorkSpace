@@ -1,0 +1,22 @@
+package project1020;
+
+/*
+ 색상, 가격, 자율주행모듈장착 여부, 달린다, 멈춘
+ */
+
+public class Car {
+	String color = "red";
+	int price = 35000;
+	boolean auto = false;
+	public void drive() {
+		System.out.println("달린다");
+	}
+	public void stop() {
+		System.out.println("멈춘다");
+	}
+	public static void main(String[] args) {
+		Car bmw = new Car();
+		bmw.drive();
+		bmw.stop();
+	}
+}
