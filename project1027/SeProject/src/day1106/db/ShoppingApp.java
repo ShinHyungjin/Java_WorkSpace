@@ -14,6 +14,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -48,6 +50,7 @@ public class ShoppingApp extends JFrame {
 	Image img;
 	File file;
 	ProductController productController;
+	CollectorFrame collectorFrame;
 
 	JPanel p_west; // 전체 중 서쪽
 	JPanel p_center; // 전체 중 가운데
@@ -62,6 +65,7 @@ public class ShoppingApp extends JFrame {
 	JTextField t_brand;
 	JTextField t_price;
 	JButton bt_find; // 이미지 찾아보기
+	JButton bt_collect; // 이미지 수집하기(원격지 이미지를 내 HDD로)
 	JPanel can;// 이미지 미리보기 그려질 곳
 	JButton bt_regist;
 
@@ -98,6 +102,7 @@ public class ShoppingApp extends JFrame {
 				g.drawImage(img, 0, 0, can);
 			}
 		};
+		bt_collect = new JButton("인터넷수집");
 		bt_regist = new JButton("등록");
 
 		// 서쪽 조립
@@ -107,6 +112,7 @@ public class ShoppingApp extends JFrame {
 		p_west.add(t_brand);
 		p_west.add(t_price);
 		p_west.add(bt_find);
+		p_west.add(bt_collect);
 		p_west.add(can);
 		p_west.add(bt_regist);
 
@@ -117,6 +123,7 @@ public class ShoppingApp extends JFrame {
 		t_brand.setPreferredSize(new Dimension(135, 30));
 		t_price.setPreferredSize(new Dimension(135, 30));
 		bt_find.setPreferredSize(new Dimension(135, 30));
+		bt_collect.setPreferredSize(new Dimension(135, 30));
 		can.setPreferredSize(new Dimension(135, 115));
 
 		ch_top.add("--choose category--");
@@ -139,10 +146,13 @@ public class ShoppingApp extends JFrame {
 		// 스타일 적용
 		c_north.setBackground(Color.PINK);
 		ch_category.setPreferredSize(new Dimension(130, 30));
-		t_keyword.setPreferredSize(new Dimension(500, 30));
+		t_keyword.setPreferredSize(new Dimension(380, 30));
 		bt_search.setPreferredSize(new Dimension(120, 30));
 		c_center.setLayout(new BorderLayout());
 
+		ch_category.add("product_name");
+		ch_category.add("brand");
+		
 		// 가운데-검색영역 조립
 		c_north.add(ch_category);
 		c_north.add(t_keyword);
@@ -168,9 +178,16 @@ public class ShoppingApp extends JFrame {
 		t_brand2 = new JTextField();
 		t_price2 = new JTextField();
 		bt_find2 = new JButton("이미지찾기");
-		can2 = new JPanel();
+		can2 = new JPanel() {
+			@Override
+			public void paint(Graphics g) {
+				g.drawImage(img, 0, 0, can2);
+			}
+		};
+		ch_top2.add("--choose category--");
 		bt_edit = new JButton("수정");
 		bt_del = new JButton("삭제");
+		
 
 		// 동쪽 조립
 		p_east.add(ch_top2);
@@ -201,6 +218,7 @@ public class ShoppingApp extends JFrame {
 		add(p_east, BorderLayout.EAST);
 		connect();
 		getTopList();
+		getProductList();
 
 		this.addWindowListener(new WindowAdapter() {
 			@Override
@@ -222,7 +240,7 @@ public class ShoppingApp extends JFrame {
 		bt_find.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				findImage();
-				preview();
+				preview(can);
 			}
 		});
 
@@ -232,9 +250,39 @@ public class ShoppingApp extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				regist();
 				getProductList();
+				table.updateUI();
 			}
 		});
 
+		bt_collect.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				collectorFrame = new CollectorFrame(ShoppingApp.this);
+			}
+		});
+		bt_search.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				getSearchResult(ch_category.getSelectedItem(), t_keyword.getText());
+				table.updateUI();
+			}
+		});
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				int row = table.getSelectedRow();
+				int col = table.getSelectedColumn();
+				String result = (String)table.getValueAt(row, 0);
+				result += "\t"+(String)table.getValueAt(row, 1);
+				result += "\t"+(String)table.getValueAt(row, 2);
+				result += "\t"+(String)table.getValueAt(row, 3);
+				result += "\t"+(String)table.getValueAt(row, 4);
+				result += "\t"+(String)table.getValueAt(row, 5);
+				System.out.println(result);
+				
+				getDetail(row);
+			}
+		});
 		setSize(1000, 600);
 		setLocationRelativeTo(null);
 		setVisible(true);
@@ -263,44 +311,68 @@ public class ShoppingApp extends JFrame {
 		}
 	}
 	
-	public void getProductList() {
-		String sql = "select * from product";
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		String[][] data;
-		try {
-			pstmt = con.prepareStatement(sql);
-			rs = pstmt.executeQuery();
+	//product 테이블의 레코드 가져오기 
+		public void getProductList() {
+			String sql="select * from product";
 			
-			while(rs.next()) {
-				System.out.println(rs.getRow());
-				String [] record = new String[6];
-				record[0] = rs.getString("product_id");
-				record[1] = rs.getString("subcategory_id");
-				record[2] = rs.getString("product_name");
-				record[3] = rs.getString("brand");
-				record[4] = rs.getString("price");
-				record[5] = rs.getString("filename");
-			}
-			data = new String[rs.getRow()][6];
+			PreparedStatement pstmt=null;
+			ResultSet rs = null;
 			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}finally {
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (SQLException e) {
+			try {
+				//PreparedStatement 생성시 인수 2개를 넘겨, 전후방향으로 커서를 자유롭게 이동 가능하게할 수 있다. 
+				pstmt=con.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);//쿼리준비
+				rs = pstmt.executeQuery(); //select문 수행 후 결과표를 rs에 대입
+				
+				//rs의 메서드 중 .getRow() 는 현재 커서의 위치 즉 레코드 어디를 가리키고 있는지를
+				//알수 있다..
+				
+				rs.last();// 커서를 제일 마지막으로 보내기 
+				int currentRow = rs.getRow();
+				//System.out.println("현재 커서가 가리키는 레코드 번호는 "+currentRow);
+				System.out.println("마지막에 도달한 커서의 rowNum "+currentRow);
+				
+				//rs의 표 데이터를 ProductController가 보유한  data이차원 배열에 대입!!
+				String[][] data = new String[currentRow][productController.column.length];
+				
+				//이차원배열에 데이터를 담으려면, 커서를 다시 원상복귀시켜야 한다..
+				rs.beforeFirst(); //첫번째 레코드 보다도 이전으로 되돌림 (즉 위치 초기화)
+				
+				int index=0;
+				while(rs.next()) {
+					String[] record = new String[productController.column.length];
+					
+					record[0] = rs.getString("product_id");
+					record[1] = rs.getString("subcategory_id");
+					record[2] = rs.getString("product_name");
+					record[3] = rs.getString("brand");
+					record[4] = rs.getString("price");
+					record[5] = rs.getString("filename");
+					
+					//채워진 일차원 배열을 data 이차원배열에 순서대로 담자
+					data[index++]=record;
+					System.out.println(index);
+				}
+				//완성된 이차원배열을 productController가 보유한 data 배열 주소로 대입시켜버리자
+				productController.data = data;
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}finally {
+				if (rs != null) {
+					try {
+						rs.close();
+					} catch (SQLException e) {
+					}
+				}
+				if (pstmt != null) {
+					try {
+						pstmt.close();
+					} catch (SQLException e) {
+					}
 				}
 			}
-			if (pstmt != null) {
-				try {
-					pstmt.close();
-				} catch (SQLException e) {
-				}
-			}
+			
 		}
-	}
 
 	public void disconnect() {
 		if (con != null)
@@ -322,6 +394,36 @@ public class ShoppingApp extends JFrame {
 			while (rs.next()) {
 				hm.put(rs.getString("name"), rs.getInt("topcategory_id"));
 				ch_top.add(rs.getString("name"));
+				ch_top2.add(rs.getString("name"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+				}
+			}
+			if (pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+				}
+			}
+		}
+
+	}
+	public void getTopList2(int id) {
+		ch_top2.removeAll();
+		String sql = "select * from topcategory where topcategory_id in(select topcategory_id from subcategory where subcategory_id="+id+")";
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			pstmt = con.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+				ch_top2.add(rs.getString("name"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -344,7 +446,9 @@ public class ShoppingApp extends JFrame {
 
 	public void getSubList(int id) {
 		ch_sub.removeAll();
+		ch_sub2.removeAll();
 		ch_sub.add("--choose category--");
+		ch_sub2.add("--choose category--");
 		String sql = "SELECT * FROM SUBCATEGORY WHERE TOPCATEGORY_ID=" + id;
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
@@ -355,6 +459,37 @@ public class ShoppingApp extends JFrame {
 			while (rs.next()) {
 				hm2.put(rs.getString("name"), rs.getInt("subcategory_id"));
 				ch_sub.add(rs.getString("name"));
+				ch_sub2.add(rs.getString("name"));
+				
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+				}
+			}
+			if (pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+				}
+			}
+		}
+	}
+	public void getSubList2(int id) {
+		ch_sub2.removeAll();
+		String sql = "SELECT * FROM SUBCATEGORY WHERE SUBCATEGORY_ID=" + id;
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+		try {
+			pstmt = con.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+
+			while (rs.next()) {
+				ch_sub2.add(rs.getString("name"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -379,13 +514,16 @@ public class ShoppingApp extends JFrame {
 		if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 			file = fc.getSelectedFile();
 			System.out.println(file.getAbsolutePath());
-			img = kit.getImage(file.getAbsolutePath());
-			img = ImageUtil.getCustomSize(img, 135, 115);
+			getTargetImage(file.getAbsolutePath());
 		}
+	}
+	public void getTargetImage(String path) {
+		img = kit.getImage(path);
+		img = ImageUtil.getCustomSize(img, 135, 115);
 	}
 
 	// 미리보기
-	public void preview() {
+	public void preview(JPanel can) {
 		can.repaint();
 	}
 
@@ -425,6 +563,77 @@ public class ShoppingApp extends JFrame {
 				}
 			}
 		}
+	}
+	public void getSearchResult(String category, String keyword) {
+		String sql="select * from product where ";
+		sql += category+" like '%"+keyword+"%'";
+		
+		PreparedStatement pstmt=null;
+		ResultSet rs = null;
+		
+		try {
+			//PreparedStatement 생성시 인수 2개를 넘겨, 전후방향으로 커서를 자유롭게 이동 가능하게할 수 있다. 
+			pstmt=con.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);//쿼리준비
+			rs = pstmt.executeQuery(); //select문 수행 후 결과표를 rs에 대입
+			
+			//rs의 메서드 중 .getRow() 는 현재 커서의 위치 즉 레코드 어디를 가리키고 있는지를
+			//알수 있다..
+			
+			rs.last();// 커서를 제일 마지막으로 보내기 
+			int currentRow = rs.getRow();
+			//System.out.println("현재 커서가 가리키는 레코드 번호는 "+currentRow);
+			System.out.println("마지막에 도달한 커서의 rowNum "+currentRow);
+			
+			//rs의 표 데이터를 ProductController가 보유한  data이차원 배열에 대입!!
+			String[][] data = new String[currentRow][productController.column.length];
+			
+			//이차원배열에 데이터를 담으려면, 커서를 다시 원상복귀시켜야 한다..
+			rs.beforeFirst(); //첫번째 레코드 보다도 이전으로 되돌림 (즉 위치 초기화)
+			
+			int index=0;
+			while(rs.next()) {
+				String[] record = new String[productController.column.length];
+				
+				record[0] = rs.getString("product_id");
+				record[1] = rs.getString("subcategory_id");
+				record[2] = rs.getString("product_name");
+				record[3] = rs.getString("brand");
+				record[4] = rs.getString("price");
+				record[5] = rs.getString("filename");
+				
+				//채워진 일차원 배열을 data 이차원배열에 순서대로 담자
+				data[index++]=record;
+				System.out.println(index);
+			}
+			//완성된 이차원배열을 productController가 보유한 data 배열 주소로 대입시켜버리자
+			productController.data = data;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+				}
+			}
+			if (pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+				}
+			}
+		}
+		
+	}
+	public void getDetail(int row) {
+		t_name2.setText((String)table.getValueAt(row, 2));
+		t_brand2.setText((String)table.getValueAt(row, 3));
+		t_price2.setText((String)table.getValueAt(row, 4));
+		getTargetImage("D:/IT_Korea_Class/Java/project1027/SeProject/res/travel2/"+(String)table.getValueAt(row, 5));
+		preview(can2);
+		getTopList2(Integer.parseInt(((String)table.getValueAt(row, 1))));
+		getSubList2(Integer.parseInt(((String)table.getValueAt(row, 1))));
 	}
 
 	public static void main(String[] args) {
