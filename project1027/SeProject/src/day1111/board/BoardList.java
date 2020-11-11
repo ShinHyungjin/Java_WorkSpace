@@ -1,0 +1,45 @@
+package day1111.board;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+
+public class BoardList extends JPanel{
+	JTable table;
+	JScrollPane scroll;
+	JButton bt;
+	BoardApp boardApp;
+	public BoardList(BoardApp boardApp) {
+		this.boardApp = boardApp;
+		table = new JTable(8,5);
+		scroll = new JScrollPane(table);
+		bt = new JButton("글 등록");
+		
+		setLayout(new BorderLayout());
+		add(scroll);
+		add(bt, BorderLayout.SOUTH);
+		
+		setPreferredSize(new Dimension(780,500));
+		setVisible(true);
+		
+		bt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boardApp.setPage(boardApp.BOARDWRITE);
+			}
+		});
+		table.addMouseListener(new MouseAdapter() {
+			public void mouseReleased(MouseEvent e) {
+				boardApp.setPage(boardApp.BOARDETAIL);
+			}
+		});
+	}
+
+}
