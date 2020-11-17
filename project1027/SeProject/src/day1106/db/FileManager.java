@@ -16,6 +16,14 @@ public class FileManager {
 		return str[1];
 	}
 	
+	// 확장자 구하기 업그레이드 (.이 많은 파일명엔 이게 더 적합)
+	public static String getExtend2(String filename) {
+		int lastIndex = filename.lastIndexOf(".");
+		return 	filename.substring(lastIndex+1, filename.length());
+	}
+	
+	
+	
 //	public static void main(String[] args) {
 //		String filename = getFilename("https://www.cartier.co.kr/content/dam/rcq/car/15/95/55/3/1595553.png");
 //		System.out.println(filename);

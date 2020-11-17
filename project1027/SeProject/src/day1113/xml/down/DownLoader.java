@@ -17,6 +17,8 @@ import java.net.URLConnection;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -29,14 +31,17 @@ import day1106.db.FileManager;
 public class DownLoader extends JFrame{
 	JButton bt;
 	JProgressBar bar;
+	JLabel la;
 	File file;
 	MovieHandler movieHandler;
 	Thread parsingThread;
 	
-	int count=0;
+	int total=0;
+	int readCount=0;
 	public DownLoader() {
 		bt = new JButton("다운로드");
 		bar = new JProgressBar();
+		la = new JLabel();
 		
 		bar.setPreferredSize(new Dimension(580,45));
 		bar.setForeground(Color.CYAN);
@@ -55,19 +60,19 @@ public class DownLoader extends JFrame{
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
 		
-		parsingThread = new Thread() {
-			public void run() {
-				parseData();
-				System.out.println("MovieList에 담김 아이템의 총 수는 : "+movieHandler.movieList.size());
-				for(int i=0; i<movieHandler.movieList.size(); i++) {
-					Movie movie = movieHandler.movieList.get(i);
-					download(movie.getUrl());
-				}
-				//download();
-			};
-		};
-		
 		bt.addActionListener((e)-> {
+			parsingThread = new Thread() {
+				public void run() {
+					parseData();
+					System.out.println("MovieList에 담김 아이템의 총 수는 : "+movieHandler.movieList.size());
+					for(int i=0; i<movieHandler.movieList.size(); i++) {
+						Movie movie = movieHandler.movieList.get(i);
+						download(movie.getUrl());
+					}
+					//download();
+					JOptionPane.showMessageDialog(DownLoader.this, "복사가 완료되었습니다 \n총"+movieHandler.movieList.size()+"개 많큼의 파일이 복사되었습니다.");
+				};
+			};
 			parsingThread.start();
 		});
 	}
@@ -80,27 +85,31 @@ public class DownLoader extends JFrame{
 			HttpURLConnection http = (HttpURLConnection)con;
 			http.setRequestMethod("GET");
 			
+			//커넥션 객체를 이용하면 대상 자원의 크기까지 얻어올 수 있다.
+			
+			int total = con.getContentLength();
+			readCount=0;
+			System.out.println(total);
+			
 			is = http.getInputStream();
 			
 			long time = System.currentTimeMillis(); // 현재시간
-			String ext = FileManager.getExtend(path); //전에 만든 확장자 구하는 메소드
+			String ext = FileManager.getExtend2(path); //전에 만든 확장자 구하는 메소드
 			
 			File file = new File("D:/IT_Korea_Class/Java/project1027/SeProject/res/download/"+time+"."+ext);
 			fos = new FileOutputStream(file);
 			
-			int data=-1;
-			count = 0;
-			bar.setValue(count);
+			int data=-1;	
+			
 			while(true) {
 				data = is.read();
+				bar.setValue((int)getPercent(total, readCount));
 				if(data==-1) 
 					break;
-				else 
+				readCount++;
 				fos.write(data);
-				bar.setValue(count++);
-				
 			}
-			System.out.println("복사완료");
+			System.out.println(time+"."+ext+" 복사완료");
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -144,6 +153,9 @@ public class DownLoader extends JFrame{
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
+	}
+	public float getPercent(int total, float readCount) {
+		return (readCount/total)*100;
 	}
 	public static void main(String[] args) {
 		new DownLoader();
