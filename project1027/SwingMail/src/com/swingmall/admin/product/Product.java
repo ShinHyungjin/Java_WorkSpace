@@ -2,6 +2,7 @@ package com.swingmall.admin.product;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,6 +33,7 @@ public class Product extends Page{
 	ArrayList<String> topList;//최상위 카테고리 이름을 담게될 리스트 top,down,accessay,shoes
 	ArrayList<ArrayList> subList=new ArrayList<ArrayList>();//모든 하위 카테고리
 	ProductModel model;
+	RegistForm registForm;
 	
 	public Product(AdminMain adminMain) {
 		super(adminMain);
@@ -57,6 +59,7 @@ public class Product extends Page{
 		s1 = new JScrollPane(tree);
 		s2 = new JScrollPane(table);
 		bt_regist = new JButton("등록하기");
+		registForm = new RegistForm(this);
 		
 		//스타일 적용 
 		s1.setPreferredSize(new Dimension(200, AdminMain.HEIGHT-100));
@@ -72,14 +75,25 @@ public class Product extends Page{
 		
 		add(p_west, BorderLayout.WEST);
 		add(p_center);
+		//add(registForm);
 		
+		//등록폼 생성 
 		
-		getProductList(null);
+		getProductList(null);//모든 상품 가져오기
 		
 		//tree는 이벤트가 별도로 지원 ..
 		tree.addTreeSelectionListener((e)->{
 			DefaultMutableTreeNode selectedNode=(DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
-			getProductList(selectedNode.toString());//모든 상품 가져오기
+			
+			if(selectedNode.toString().equals("상품목록")) {
+				getProductList(null);//모든 상품 가져오기
+			}else {
+				getProductList(selectedNode.toString());//모든 상품 가져오기				
+			}
+		});
+		
+		bt_regist.addActionListener((e) -> {
+			addRemoveContent(p_center, registForm);
 		});
 		
 	}
@@ -191,5 +205,9 @@ public class Product extends Page{
 		}
 		
 	}
-	
+	public void addRemoveContent(Component removeObj, Component addObj) {
+		this.remove(removeObj);
+		this.add(addObj);
+		((JPanel)addObj).updateUI();
+	}
 }
