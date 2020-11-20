@@ -2,8 +2,12 @@ package com.swingmall.member;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -24,11 +28,11 @@ public class RegistForm extends Page{
 		super(shopMain);
 		p_content = new JPanel();
 		
-		t_mid = new JTextField("아이디 입력");
-		t_pass = new JPasswordField();
-		t_name = new JTextField("이름 입력");
-		t_phone = new JTextField("연락처 입력");
-		t_email = new JTextField("E-Mail 입력");
+		t_mid = new JTextField("ID");
+		t_pass = new JPasswordField("PASS");
+		t_name = new JTextField("NAME");
+		t_phone = new JTextField("PHONE");
+		t_email = new JTextField("E-MAIL");
 		bt_regist = new JButton("회원가입");
 		
 		//스타일 
@@ -51,6 +55,67 @@ public class RegistForm extends Page{
 		
 		add(p_content);
 		
+		bt_regist.addActionListener((e) ->  {
+			if(checkId(t_mid.getText())) // 회원가입시 id 중복조회
+				JOptionPane.showMessageDialog(this, "중복된 아이디!");
+			else {
+				ShopMember vo = new ShopMember();
+				vo.setMid(t_mid.getText());
+				vo.setPass(new String(t_pass.getPassword()));
+				vo.setName(t_name.getText());
+				vo.setPhone(t_phone.getText());
+				vo.setEmail(t_email.getText());
+				if(regist(vo)==0)
+					JOptionPane.showMessageDialog(this, "가입실패");
+				else
+					JOptionPane.showMessageDialog(this, "가입성공");
+			}
+				
+		});
+	}
+	public int regist(ShopMember shopMember) {
+		PreparedStatement pstmt = null;
+		String sql = "insert into shop_member(member_id, mid,pass,name,phone,email) ";
+		sql += "values(seq_shop_member.nextval,?,?,?,?,?)";
+		
+		int result=0;
+		
+		try {
+			pstmt = getShopMain().getCon().prepareStatement(sql);
+			
+			pstmt.setString(1, shopMember.getMid());
+			pstmt.setString(2, shopMember.getPass());
+			pstmt.setString(3, shopMember.getName());
+			pstmt.setString(4, shopMember.getPhone());
+			pstmt.setString(5, shopMember.getEmail());
+			
+			result = pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			getShopMain().getDbManager().close(pstmt);
+		}
+		return result;
+	}
+	
+	public boolean checkId(String mid) {
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String sql = "select * from shop_member where mid=?";
+		boolean flag = false;
+		try {
+		pstmt = getShopMain().getCon().prepareStatement(sql);
+		pstmt.setString(1, mid);
+		rs = pstmt.executeQuery();
+		
+		flag = rs.next();
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}finally {
+			getShopMain().getDbManager().close(pstmt,rs);
+		}
+		return flag;
 	}
 	
 }
