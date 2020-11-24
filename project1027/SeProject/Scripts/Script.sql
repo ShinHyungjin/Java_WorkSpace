@@ -1,0 +1,1 @@
+ALTER TABLE CHAT ADD(t_id varchar2(10 char));
