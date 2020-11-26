@@ -1,4 +1,4 @@
-package dat1124.layout;
+package day1124.layout;
 
 import javafx.application.Application;
 import javafx.geometry.Orientation;

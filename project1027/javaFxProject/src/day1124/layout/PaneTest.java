@@ -1,26 +1,32 @@
-package dat1124.components;
-
-import java.net.URL;
+package day1124.layout;
 
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.image.ImageView;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 
-public class ImageViewApp extends Application{
-	String url;
-
+public class PaneTest extends Application{
 	public void start(Stage stage) throws Exception {
-		url = "https://www.urbanbrush.net/web/wp-content/uploads/edd/2018/11/urbanbrush-20181126042312829882.png";
-		ImageView imageView = new ImageView(url);
-		imageView.setPreserveRatio(true); // 비율 유지
 		
-		FlowPane parent = new FlowPane(imageView);
+		FlowPane parent = new FlowPane(10,20);
+		
+		TextField tf = new TextField();
+		Button bt = new Button("버튼");
+		TextArea ta = new TextArea();
+		
+		tf.setPrefSize(370, 50);
+		bt.setPrefSize(100, 50);
+		ta.setPrefSize(480, 390);
+		
+		parent.getChildren().add(tf);
+		parent.getChildren().add(bt);
+		parent.getChildren().add(ta);
 		
 		showWindow(stage, parent);
-		
 	}
 
 	public void showWindow(Stage stage, Parent parent) {

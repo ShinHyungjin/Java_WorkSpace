@@ -1,4 +1,4 @@
-package dat1124.components;
+package day1124.components;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
