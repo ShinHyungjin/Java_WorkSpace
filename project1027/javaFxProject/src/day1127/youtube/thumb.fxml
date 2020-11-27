@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.web.WebView?>
+<?import javafx.scene.control.Label?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefWidth="200" prefHeight="180">
+	<center>
+		<WebView prefWidth="200" prefHeight="155" fx:id="webView">  </WebView>
+	</center>
+	<bottom>
+		<Label prefHeight="25" fx:id="la_title"> </Label>
+	</bottom>
+</BorderPane>
+
