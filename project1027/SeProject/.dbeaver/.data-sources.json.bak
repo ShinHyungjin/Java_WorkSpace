@@ -26,20 +26,8 @@
 					"@dbeaver-connection-type@": "BASIC",
 					"@dbeaver-sid-service@": "SERVICE"
 				},
-				"auth-model": "oracle_native"
-			}
-		}
-	},
-	"virtual-models": {
-		"oracle_thin-175eea22f92-6c0722083467dc82": {
-			"SOOMCO": {
-				":TOP_INTERESTS": {
-					"properties": {
-						"erd.diagram.state": {
-							"serialized": "<diagram version=\"1\" name=\"TOP_INTERESTS\" time=\"202011280302\"><entities><data-source id=\"oracle_thin-175eea22f92-6c0722083467dc82\"><entity id=\"1\" name=\"TOP_INTERESTS\" fq-name=\"SOOMCO.TOP_INTERESTS\" order=\"0\" color-bg=\"255,128,64\" x=\"183\" y=\"40\"><path name=\"SOOMCO\"/></entity><entity id=\"2\" name=\"SUB_INTERESTS\" fq-name=\"SOOMCO.SUB_INTERESTS\" order=\"1\" x=\"26\" y=\"25\"><path name=\"SOOMCO\"/></entity></data-source></entities><relations><relation name=\"FK_TOP_INTERESTS\" fq-name=\"SOOMCO.SUB_INTERESTS.FK_TOP_INTERESTS\" type=\"fk\" pk-ref=\"1\" fk-ref=\"2\"/></relations></diagram>"
-						}
-					}
-				}
+				"auth-model": "oracle_native",
+				"handlers": {}
 			}
 		}
 	},

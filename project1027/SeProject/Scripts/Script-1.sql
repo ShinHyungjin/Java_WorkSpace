@@ -54,3 +54,7 @@ UPDATE sub_interests SET sub_img = 'wedding.png' WHERE sub_id = 53;
 UPDATE sub_interests SET sub_img = 'tatoo.png' WHERE sub_id = 54;
 
 select sub_name from sub_interests where top_id=(select top_id from top_interests where top_name='운동');
+
+INSERT INTO member(m_seq, m_id, m_password, m_name, m_location, m_mail, m_gender, m_position, m_introduce, m_image, m_top_interests, m_sub_interests, m_status, m_matching_count, m_deadline) VALUES(seq_member.nextval, 'hello', 1234, '강동원', '경기도','hello@naver.com', '남자','고수','전문적인 레슨이 가능합니다 ^^','https://pbs.twimg.com/profile_images/962934262369419266/nTpN_f_a.jpg','Programming','Java','true',NULL,NULL);
+
+alter table member add m_matching varchar2(5 char) DEFAULT 'false' not null;
